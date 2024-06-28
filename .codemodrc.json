@@ -6,7 +6,8 @@
   "private": false,
   "arguments": [],
   "meta": {
-    "tags": []
+    "tags": ["polyfill", "url", "security"],
+    "git": "https://github.com/foxted/codemod-polyfill"
   },
   "include": [
     "*.js",
