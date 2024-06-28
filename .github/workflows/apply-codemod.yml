@@ -1,0 +1,74 @@
+name: Apply Codemod on Repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      org:
+        description: 'Repository organization'
+        required: true
+        default: 'org'
+      repo:
+        description: 'Repository name'
+        required: true
+        default: 'repo'
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+
+jobs:
+  apply-codemod:
+    name: Apply codemod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+          owner: ${{ github.event.inputs.org }}
+
+      - name: Checkout codemod repository
+        uses: actions/checkout@v4
+        with:
+          path: codemod
+
+      - name: Checkout target repository (${{ github.event.inputs.org }}/${{ github.event.inputs.repo }})
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.inputs.org }}/${{ github.event.inputs.repo }}
+          path: target
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache-dependency-path: codemod/package-lock.json
+          cache: npm
+#
+#      - name: Build codemod
+#        working-directory: codemod
+#        run: |
+#          npm ci
+#          npm run build
+
+      - name: Check setup
+        run: |
+          echo "Base directory: $(ls -la)"
+          echo "Codemod repository: $(ls -la codemod)"
+          echo "Target repository: $(ls -la target)"
+          echo "Dist directory: $(ls -la codemod/dist)"
+
+      - name: Run codemod
+        working-directory: codemod
+        run: |
+          ls -la ${{ github.workspace }}/codemod/dist
+          npx codemod --source ${{ github.workspace }}/codemod --target ${{ github.workspace }}/target --verbose --no-telemetry
+          ls -la ${{ github.workspace }}/codemod/dist
+
+      - name: Status
+        working-directory: target
+        run: git status

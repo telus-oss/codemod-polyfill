@@ -1,0 +1,29 @@
+{
+  "name": "codemod-polyfill",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jscodeshift": "^0.11.10",
+    "@types/node": "20.9.0",
+    "codemod": "^0.11.21",
+    "csv-parse": "^5.5.6",
+    "csv-stringify": "^6.5.0",
+    "jscodeshift": "^0.15.1",
+    "path": "^0.12.7",
+    "typescript": "^5.2.2",
+    "uuid": "^10.0.0",
+    "vitest": "^1.0.1",
+    "zx": "^8.1.3"
+  },
+  "scripts": {
+    "build": "codemod build --no-telemetry",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "files": [
+    "README.md",
+    ".codemodrc.json",
+    "/dist/index.cjs"
+  ],
+  "type": "module",
+  "author": "foxted"
+}
