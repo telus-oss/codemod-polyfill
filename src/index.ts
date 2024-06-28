@@ -1,8 +1,12 @@
-import type { FileInfo, API, Options } from 'jscodeshift';
+import type { API, FileInfo, Options } from 'jscodeshift';
 
 const domains = [
-  'https://cdn.polyfill.io',
-  'https://polyfill.io',
+  'cdn.polyfill.io',
+  'polyfill.io',
+  'cdn.bootcdn.net',
+  'cdn.bootcss.com',
+  'cdn.staticfile.net',
+  'cdn.staticfile.org',
 ];
 
 const newUrl = 'https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=4.8.0';
@@ -16,7 +20,7 @@ export default function transform(
   if (file.path.endsWith('.html')) {
     let updatedSource = file.source;
     domains.forEach(domain => {
-      const regex = new RegExp(`${domain.replace(/\./g, '\\.')}[^"']*`, 'g'); // Match the domain and anything that follows it up to a " or '
+      const regex = new RegExp(`https?:\\/\\/(${domain.replace(/\./g, '\\.')})[^"']*`, 'g');
       updatedSource = updatedSource.replace(regex, newUrl);
     });
     return updatedSource;
@@ -29,10 +33,13 @@ export default function transform(
   root.find(j.Literal).forEach((path) => {
     // Check if the value is a string and contains one of the old URLs
     if (
-      typeof path.node.value === 'string' && domains.some((domain) => path.node.value.includes(domain))
+      typeof path.node.value === 'string' && domains.some((domain) => {
+        const regex = new RegExp(`https?:\\/\\/(${domain.replace(/\./g, '\\.')})[^"']*`, 'g');
+        return regex.test(path.node.value);
+      })
     ) {
       // Replace the old URL with the new URL
-      path.node.value = newUrl;
+      path.node.value = path.node.value.replace(new RegExp(`https?:\\/\\/(${domains.map(d => d.replace(/\./g, '\\.')).join('|')})[^"']*`, 'g'), newUrl);
     }
   });
 

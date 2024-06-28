@@ -54,6 +54,23 @@ describe('JS/TS transformations', () => {
       OUTPUT.replace(/\s/gm, ''),
     );
   });
+
+  it('bootcdn', async () => {
+    const INPUT = await readFile(join(__dirname, '..', '__testfixtures__/fixture4.input.ts'), 'utf-8');
+    const OUTPUT = await readFile(join(__dirname, '..', '__testfixtures__/fixture4.output.ts'), 'utf-8');
+
+    const actualOutput = transform({
+        path: 'index.ts',
+        source: INPUT,
+      },
+      buildApi('tsx'),
+    );
+
+    assert.deepEqual(
+      actualOutput?.replace(/\s/gm, ''),
+      OUTPUT.replace(/\s/gm, ''),
+    );
+  });
 });
 
 describe('HTML transformations', () => {
