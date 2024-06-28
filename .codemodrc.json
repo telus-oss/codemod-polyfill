@@ -1,13 +1,13 @@
 {
   "$schema": "https://codemod-utils.s3.us-west-1.amazonaws.com/configuration_schema.json",
   "name": "replace-polyfill-urls",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "engine": "jscodeshift",
   "private": false,
   "arguments": [],
   "meta": {
     "tags": ["polyfill", "url", "security"],
-    "git": "https://github.com/foxted/codemod-polyfill"
+    "git": "https://github.com/telus-oss/codemod-polyfill"
   },
   "include": [
     "*.js",
