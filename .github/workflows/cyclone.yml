@@ -27,7 +27,10 @@ jobs:
 
       - name: Generate CycloneDX SBOM in JSON
         run: |
-          npx cyclonedx-bom -o sbom.json -r -j
+          npx cyclonedx-bom -o sbom.json 
+      - name: Generate Vulnerability Report
+        run: npx audit-ci --report-type full --output-format json > vdr.json
+
 
       - name: Upload CycloneDX SBOM artifact
         uses: actions/upload-artifact@v3
