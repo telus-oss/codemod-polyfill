@@ -13,9 +13,19 @@ jobs:
       - name: Create SBOM with CycloneDX
         uses: CycloneDX/gh-node-module-generatebom@v1
         with: 
-          output: './test.app.bom.xml'
+          output: './app.bom.xml'
+      - name: Send SBOM artifact
+        run: |
+          curl -X 'POST' \
+            "${{ secrets.CONCERT_URL }}/ingestion/api/v1/upload_files" \
+            -H 'accept: application/json' \
+            -H "InstanceID: 0000-0000-0000-0000" \
+            -H "Authorization: <type> ${{ secrets.CONCERT }}" \
+            -H 'Content-Type: multipart/form-data' \
+            -F "data_type=package_sbom" \
+            -F "filename=@app.bom.xml"
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v3
         with:
           name: sbom
-          path: ./test.app.bom.xml
+          path: ./app.bom.xml
