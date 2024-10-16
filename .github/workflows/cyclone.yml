@@ -17,10 +17,11 @@ jobs:
       - name: Send SBOM artifact
         run: |
           curl -X 'POST' \
+            -k \
             "${{ secrets.CONCERT_URL }}/ingestion/api/v1/upload_files" \
             -H 'accept: application/json' \
             -H "InstanceID: 0000-0000-0000-0000" \
-            -H "Authorization: <type> ${{ secrets.CONCERT }}" \
+            -H "Authorization: Bearer ${{ secrets.CONCERT }}" \
             -H 'Content-Type: multipart/form-data' \
             -F "data_type=package_sbom" \
             -F "filename=@app.bom.xml"
