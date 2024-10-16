@@ -35,9 +35,7 @@ jobs:
           name: sbom
           path: sbom.json
 
-      - name: Run security vulnerability scan (optional)
-        run: |
-          npx audit-ci --report-type json --output-file=vdr.json
+
 
       - name: Upload Vulnerability Report
         uses: actions/upload-artifact@v3
