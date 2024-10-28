@@ -5,8 +5,6 @@ updates:
    directory: "/"
    schedule:
       interval: "weekly"
-   registries:
-     - npm-github
    open-pull-requests-limit: 10
      
 
