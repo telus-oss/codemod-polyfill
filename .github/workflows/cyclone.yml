@@ -1,0 +1,93 @@
+name: cyclone 
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Install and build javascript
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - run: npm install
+
+      - name: Create SBOM with CycloneDX
+        uses: CycloneDX/gh-node-module-generatebom@v1
+        with: 
+          output: './sbom.json'
+          format: 'json'
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom
+          path: ./sbom.json
+
+      - name: Upload SBOM to external service
+        run: |
+          curl -X 'POST' \
+            -k \
+            "${{ secrets.CONCERT_HOST }}/ingestion/api/v1/upload_files" \
+            -H 'accept: application/json' \
+            -H "InstanceID: 0000-0000-0000-0000" \
+            -H "Authorization: C_API_KEY ${{ secrets.CONCERT_KEY }}" \
+            -H 'Content-Type: multipart/form-data' \
+            -F "data_type=package_sbom" \
+            -F "filename=@sbom.json"
+
+      - name: Get Dependabot alerts
+        run: |
+          echo "${{ secrets.ALERTS_KEY }}" | gh auth login --with-token
+          gh api -H "Accept: application/vnd.github+json" /repos/${{ github.repository }}/dependabot/alerts > dependabot-alerts.json
+
+
+      # - name: Install CycloneDX CLI
+      #   run: |
+      #     curl -LO https://github.com/CycloneDX/cyclonedx-cli/releases/download/v0.27.1/cyclonedx-linux-x64
+      #     chmod +x cyclonedx-linux-x64
+
+      - name: Preprocess Dependabot alerts JSON
+        run: |
+          jq -r '
+            ["CVE", "Repository URL", "Repository Name", "Package", "Package Version", "Package Path", "Severity", "Score", "hasFix", "Fixed Version", "Description", "Commit", "Branch"],
+            (.[] | [
+              .security_advisory.cve_id,
+              .html_url,
+              .repository.name,
+              .dependency.package.name,
+              .dependency.package.version,
+              .dependency.manifest_path,
+              .security_advisory.severity,
+              .security_advisory.cvss.score,
+              (.security_advisory.vulnerabilities[0].first_patched_version.identifier | if . == null then "N" else "Y" end),
+              .security_advisory.vulnerabilities[0].first_patched_version.identifier,
+              .security_advisory.description,
+              .security_advisory.references[2].url,
+              .security_advisory.references[3].url
+            ]) | @csv
+          ' dependabot-alerts.json > dependabot-alerts.csv
+
+      # - name: Convert Dependabot alerts to CycloneDX format
+      #   run: |
+      #     ./cyclonedx-linux-x64 convert --input-file dependabot-alerts.json --output-file dependabot-alerts.json --output-format json
+
+      - name: Upload Dependabot CycloneDX SBOM
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependabot-sbom
+          path: ./dependabot-alerts.csv
+
+
+      - name: Upload Dependabot alerts CSV to external service
+        run: |
+          curl -X 'POST' \
+            -k \
+            "${{ secrets.CONCERT_HOST }}/ingestion/api/v1/upload_files" \
+            -H 'accept: application/json' \
+            -H "InstanceID: 0000-0000-0000-0000" \
+            -H "Authorization: C_API_KEY ${{ secrets.CONCERT_KEY }}" \
+            -H 'Content-Type: multipart/form-data' \
+            -F "data_type=code_scan" \
+            -F "filename=@dependabot-alerts.csv" \
+            -F 'metadata={"scanner_name": "Dependabot"}'
