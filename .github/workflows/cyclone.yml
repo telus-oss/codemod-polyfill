@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Install and build javascript
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
@@ -19,7 +19,7 @@ jobs:
           format: 'json'
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: ./sbom.json
@@ -73,7 +73,7 @@ jobs:
       #     ./cyclonedx-linux-x64 convert --input-file dependabot-alerts.json --output-file dependabot-alerts.json --output-format json
 
       - name: Upload Dependabot CycloneDX SBOM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dependabot-sbom
           path: ./dependabot-alerts.csv
